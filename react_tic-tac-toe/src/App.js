@@ -80,11 +80,7 @@ export default function Game() {
     } else {
       description = "Go to game start";
     }
-    return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
-      </li>
-    );
+    return <li key={move}>{currentMove === move ? <div>당신은 {move}번째 순서에 있습니다…</div> : <button onClick={() => jumpTo(move)}>{description}</button>}</li>;
   });
 
   return (
