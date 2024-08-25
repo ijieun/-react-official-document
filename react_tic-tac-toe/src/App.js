@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-// 보드 각각의 네모
+// 보드를 구성하는 네모
 function Square({ value, onSquareClick }) {
   return (
     <button className="square" onClick={onSquareClick}>
@@ -11,6 +11,25 @@ function Square({ value, onSquareClick }) {
 
 // 게임의 보드판
 function Board({ xIsNext, squares, onPlay }) {
+  const size = 3;
+  // 3*3 값을 저장하는 board 배열 생성
+  const board = [];
+  // board 행과 열 구성
+  for (let row = 0; row < size; row++) {
+    const squareRow = [];
+    for (let col = 0; col < size; col++) {
+      const index = row * size + col;
+      squareRow.push(<Square key={index} value={squares[index]} onSquareClick={() => handleClick(index)} />);
+    }
+
+    //board 배열에 push
+    board.push(
+      <div key={row} className="board-row">
+        {squareRow}
+      </div>
+    );
+  }
+
   function handleClick(i) {
     if (squares[i] || calculateWinner(squares)) {
       return;
@@ -35,21 +54,8 @@ function Board({ xIsNext, squares, onPlay }) {
   return (
     <>
       <div className="status">{status}</div>
-      <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
-        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
-        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
-      </div>
-      <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
-        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
-        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
-      </div>
-      <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
-        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
-        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
-      </div>
+      {/* 만들어놓은 3*3 보드판 렌더링 */}
+      {board}
     </>
   );
 }
