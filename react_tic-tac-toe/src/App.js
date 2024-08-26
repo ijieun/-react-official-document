@@ -1,25 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // 보드를 구성하는 네모
-function Square({ value, onSquareClick }) {
+function Square({ value, onSquareClick, squareStyles }) {
   return (
-    <button className="square" onClick={onSquareClick}>
+    <button className="square" onClick={onSquareClick} style={squareStyles}>
       {value}
     </button>
   );
 }
 
 // 게임의 보드판
-function Board({ xIsNext, squares, onPlay }) {
+function Board({ xIsNext, squares, onPlay, squareStyles, changeStyleAtIndex }) {
   const size = 3;
   // 3*3 값을 저장하는 board 배열 생성
   const board = [];
+
   // board 행과 열 구성
   for (let row = 0; row < size; row++) {
     const squareRow = [];
     for (let col = 0; col < size; col++) {
       const index = row * size + col;
-      squareRow.push(<Square key={index} value={squares[index]} onSquareClick={() => handleClick(index)} />);
+
+      squareRow.push(<Square squareStyles={squareStyles[index]} key={index} value={squares[index]} onSquareClick={() => handleClick(index)} />);
     }
 
     //board 배열에 push
@@ -44,6 +46,15 @@ function Board({ xIsNext, squares, onPlay }) {
   }
 
   const winner = calculateWinner(squares);
+
+  // winner 가 변경할때만 이긴 line 찾고, 스타일 변경함
+  useEffect(() => {
+    if (winner) {
+      const winningLine = findWinningLine(squares);
+      changeStyleAtIndex(winningLine); // 모든 승리한 인덱스에 대해 스타일 변경
+    }
+  }, [winner]);
+
   let status;
   if (winner) {
     status = "Winner: " + winner;
@@ -55,7 +66,7 @@ function Board({ xIsNext, squares, onPlay }) {
     <>
       <div className="status">{status}</div>
       {/* 만들어놓은 3*3 보드판 렌더링 */}
-      {board}
+      <div>{board}</div>
     </>
   );
 }
@@ -64,6 +75,8 @@ function Board({ xIsNext, squares, onPlay }) {
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const [squareStyles, setSquareStyles] = useState(Array(9).fill({ color: "blue" }));
+
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
@@ -79,6 +92,16 @@ export default function Game() {
     setCurrentMove(nextMove);
   }
 
+  const changeStyleAtIndex = (indices, newStyle = { color: "green" }) => {
+    const updatedStyles = squareStyles.map((style, i) => {
+      if (indices.includes(i)) {
+        return { ...style, ...newStyle };
+      }
+      return style;
+    });
+    setSquareStyles(updatedStyles);
+  };
+
   const moves = history.map((squares, move) => {
     let description;
     if (move > 0) {
@@ -92,7 +115,7 @@ export default function Game() {
   return (
     <div className="game">
       <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        <Board changeStyleAtIndex={changeStyleAtIndex} squareStyles={squareStyles} xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
         <ol>{moves}</ol>
@@ -101,7 +124,7 @@ export default function Game() {
   );
 }
 
-// 틱택토 게임 결과 확인
+// 틱택토 게임 결과 확인하는 함수
 function calculateWinner(squares) {
   const lines = [
     [0, 1, 2],
@@ -120,4 +143,26 @@ function calculateWinner(squares) {
     }
   }
   return null;
+}
+
+// 틱택토 이긴 줄 반환하는 함수
+function findWinningLine(squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return [a, b, c]; // 승리한 라인의 인덱스를 반환
+    }
+  }
+  return []; // 승리한 라인이 없을 경우 빈 배열 반환
 }
